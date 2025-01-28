@@ -1,4 +1,3 @@
-
 # Car Management System
 
 ## Overview
@@ -26,52 +25,72 @@ The **Car Management System** is a React Native application that simplifies the 
 5. **Error Handling**:
     - Display meaningful error messages when data loading or saving fails.
 
-## Example Usage
 
-### Context API
+### Data Handling
 
-```tsx
-import { useUsers } from '../../context/useUsersContext';
-
-const { users, setUsers, cars, setCars } = useUsers();
-```
-
-### Add Car
+#### Load Cars
 
 ```tsx
-<Button title="Save Car" onPress={handleSave} />
-
-// Validation Example
-if (!carName || !carModel || !carColor || !carNumberPlate || !carImageUri) {
-    Alert.alert('Error', 'Please fill all fields');
-    return;
-}
-```
-
-### Edit Car
-
-```tsx
-const handleDropdownChange = (value: string | null) => {
-    if (value) {
-        const selectedUser = users.find(user => user.id === value);
-        setDrivingLicense(selectedUser?.drivingLicense || '');
-    }
+export const loadCars = async (): Promise<Car[]> => {
+  try {
+    const data = await AsyncStorage.getItem('cars');
+    return data ? JSON.parse(data) as Car[] : [];
+  } catch (error) {
+    console.error('Error loading cars:', error);
+    return [];
+  }
 };
 ```
 
-### Unassign Car
+#### Save Cars
 
 ```tsx
-const handleUnassign = async () => {
-    resetCarDetails();
-    const updatedCar = createUpdatedCar(car, '', '', new Date().toISOString().split('T')[0], '0.00', '', '', false);
-    setCars(updatedCars);
-    try {
-        await saveCars(updatedCars);
-        navigation.goBack();
-    } catch (error) {
-        Alert.alert('Error', 'Failed to save car details.');
-    }
+export const saveCars = async (cars: Car[]): Promise<void> => {
+  try {
+    await AsyncStorage.setItem('cars', JSON.stringify(cars));
+  } catch (error) {
+    console.error('Error saving cars:', error);
+  }
+};
+```
+
+#### Save Users
+
+```tsx
+export const saveUsers = async (users: User[]): Promise<void> => {
+  try {
+    await AsyncStorage.setItem('users', JSON.stringify(users));
+  } catch (error) {
+    console.error('Error saving users:', error);
+  }
+};
+```
+
+#### Load Users
+
+```tsx
+export const loadUsers = async (): Promise<User[]> => {
+  try {
+    const data = await AsyncStorage.getItem('users');
+    return data ? JSON.parse(data) : [];
+  } catch (error) {
+    console.error('Error loading users:', error);
+    return [];
+  }
+};
+```
+
+#### Delete User
+
+```tsx
+export const deleteUser = async (userId: string): Promise<void> => {
+  try {
+    const users = await loadUsers();
+    const updatedUsers = users.filter((user) => user.id !== userId);
+    await saveUsers(updatedUsers);
+  } catch (error) {
+    console.error('Error deleting user:', error);
+  }
 };
 ```
 
@@ -93,6 +112,13 @@ src
   └── types             # TypeScript types and interfaces
 ```
 
+## Video 
+
+https://github.com/user-attachments/assets/104d43ed-2702-40a6-9e1a-b4645f26b424
+
 ## License
 
 This project is licensed under the MIT License.
+
+**Note:** The code uploaded is a Proof of Concept (POC), not a fully functional application. It has been shared to educate new developers on how to write organized and structured code. Anyone is free to extend its functionality as per their project requirements.
+
