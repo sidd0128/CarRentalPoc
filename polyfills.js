@@ -144,3 +144,54 @@ const throttle = (cb, delay) => {
     }
   };
 };
+
+
+// Api hit in context API
+
+// import React, { createContext, useState, useEffect, useContext } from 'react';
+
+// interface DataContextType {
+//   data: any[];
+//   loading: boolean;
+// }
+
+// const DataContext = createContext<DataContextType | undefined>(undefined);
+
+// export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+//   const [data, setData] = useState<any[]>([]);
+//   const [loading, setLoading] = useState<boolean>(false);
+
+//   const fetchData = async () => {
+//     setLoading(true);
+//     try {
+//       const response = await fetch('https://jsonplaceholder.typicode.com/posts');
+//       if (!response.ok) {
+//         throw new Error('Network response was not ok');
+//       }
+//       const jsonData = await response.json();
+//       setData(jsonData);
+//     } catch (error) {
+//       console.error('Error fetching data:', error);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   useEffect(() => {
+//     fetchData();
+//   }, []);
+
+//   return (
+//     <DataContext.Provider value={{ data, loading }}>
+//       {children}
+//     </DataContext.Provider>
+//   );
+// };
+
+// export const useDataContext = (): DataContextType => {
+//   const context = useContext(DataContext);
+//   if (!context) {
+//     throw new Error('useDataContext must be used within a DataProvider');
+//   }
+//   return context;
+// };
