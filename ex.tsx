@@ -59,12 +59,12 @@
 //     setRefreshing(true);
 //     fetchData(true);
 //   };
-
+//     const renderItem = useCallback(({ item }) => <ProductItem item={item} />, []);
 //   return (
 //     <FlatList
 //       data={data}
 //       keyExtractor={(item) => item.id.toString()}
-//       renderItem={({ item }) => <ProductItem item={item} />}
+//       renderItem={renderItem}
 //       onEndReached={() => fetchData(false)}
 //       onEndReachedThreshold={0.3}
 //       ListFooterComponent={() => (loading && hasMore ? <ActivityIndicator size="large" color="blue" /> : null)}
