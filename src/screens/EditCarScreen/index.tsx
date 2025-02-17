@@ -1,4 +1,4 @@
-import React, { useState, useEffect, FC } from 'react';
+import React, { useState, useEffect, FC, useCallback } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 import styles from './styles';
 import EditCarProps from '../../types/EditCarProps';
@@ -12,6 +12,34 @@ import createUpdatedCar from '../../helper/editCarHelper';
 import Dropdown from '../../components/CustomDropdown';
 
 type CarEditNavigationProp = StackNavigationProp<RootStackParamList, 'EditCar'>;
+
+const calculateRentalDuration = (selectedDate: string): number => {
+  const startDate = new Date();
+  const endDate = new Date(selectedDate);
+  return Math.floor((endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24));
+};
+
+
+const resetCarDetails = (setStateFunctions: CarStateFunctions) => {
+  const {
+    setAssignedTo,
+    setDrivingLicense,
+    setPaidStatus,
+    setRentalAmount,
+    setSelectedRentalDate,
+    setSelectedDeductionDate,
+    setFineAmount,
+  } = setStateFunctions;
+
+  setAssignedTo('');
+  setDrivingLicense('');
+  setPaidStatus(false);
+  setRentalAmount('0.00');
+  setSelectedRentalDate(new Date().toISOString().split('T')[0]);
+  setSelectedDeductionDate('');
+  setFineAmount('');
+};
+
 
 const EditCar: FC<EditCarProps> = ({ route }) => {
   const { car } = route.params;
@@ -33,19 +61,15 @@ const EditCar: FC<EditCarProps> = ({ route }) => {
 
   const isCarAssigned = !!car?.assignedTo;
 
+
   useEffect(() => {
     if (car?.endDate) {
       setRentalDuration(calculateRentalDuration(car.endDate));
     }
   }, [car]);
 
-  const calculateRentalDuration = (selectedDate: string): number => {
-    const startDate = new Date();
-    const endDate = new Date(selectedDate);
-    return Math.floor((endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24));
-  };
 
-  const updateCarArray = async () => {
+  const updateCarArray = useCallback(async () => {
     try {
       const updatedCar = createUpdatedCar(
         car,
@@ -66,22 +90,22 @@ const EditCar: FC<EditCarProps> = ({ route }) => {
     } catch (error) {
       Alert.alert('Error', 'Failed to save car details.');
     }
-  };
+  }, [assignedTo, drivingLicense, selectedRentalDate, rentalAmount, selectedDeductionDate, fineAmount, paidStatus]);
 
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     if (!assignedTo || !drivingLicense || !selectedRentalDate || !rentalAmount || !selectedDeductionDate) {
       Alert.alert('Error', 'All fields are mandatory.');
       return;
     }
     updateCarArray();
-  };
+  }, [assignedTo, drivingLicense, selectedRentalDate, rentalAmount, selectedDeductionDate]);
 
-  const handleDropdownChange = (value: string | null) => {
+  const handleDropdownChange = useCallback((value: string | null) => {
     if (value) {
       const selectedUser = users.find(user => user.id === value);
       setDrivingLicense(selectedUser?.drivingLicense || '');
     }
-  };
+  }, [users]);
 
   const renderUserDropdown = () => (
     <View style={styles.inputContainer}>
@@ -140,31 +164,20 @@ const EditCar: FC<EditCarProps> = ({ route }) => {
     }
   };
 
-  const resetCarDetails = () => {
-    setAssignedTo('');
-    setDrivingLicense('');
-    setPaidStatus(false);
-    setRentalAmount('0.00');
-    setSelectedRentalDate(new Date().toISOString().split('T')[0]);
-    setSelectedDeductionDate('');
-    setFineAmount('');
-  };
+  const handleUnassign = useCallback(async () => {
+    resetCarDetails({
+      setAssignedTo,
+      setDrivingLicense,
+      setPaidStatus,
+      setRentalAmount,
+      setSelectedRentalDate,
+      setSelectedDeductionDate,
+      setFineAmount,
+    });
 
-  const handleUnassign = async () => {
-    resetCarDetails();
-    const updatedCar = createUpdatedCar(
-      car,
-      '', // cleared assignedTo
-      '', // cleared drivingLicense
-      new Date().toISOString().split('T')[0], // new rental end date (today)
-      '0.00', // rentalAmount reset
-      '', // cleared rentDeductionDate
-      '', // cleared fineAmount
-      false // paidStatus reset
-    );
-    const updatedCars = cars.map(existingCar =>
-      existingCar.id === updatedCar.id ? updatedCar : existingCar
-    );
+    const updatedCar = createUpdatedCar(car, '', '', new Date().toISOString().split('T')[0], '0.00', '', '', false);
+    const updatedCars = cars.map(existingCar => (existingCar.id === updatedCar.id ? updatedCar : existingCar));
+    
     setCars(updatedCars);
     try {
       await saveCars(updatedCars);
@@ -172,7 +185,7 @@ const EditCar: FC<EditCarProps> = ({ route }) => {
     } catch (error) {
       Alert.alert('Error', 'Failed to save car details.');
     }
-  };
+  }, []);
 
   return (
     <View style={styles.container}>
